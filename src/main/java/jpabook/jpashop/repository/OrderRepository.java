@@ -29,8 +29,8 @@ public class OrderRepository {
 
     public List<Order> findAllByString(OrderSearch orderSearch) {
 
-            String jpql = "select o from Order o join o.member m";
-            boolean isFirstCondition = true;
+        String jpql = "select o from Order o join o.member m";
+        boolean isFirstCondition = true;
 
         //주문 상태 검색
         if (orderSearch.getOrderStatus() != null) {
@@ -55,7 +55,7 @@ public class OrderRepository {
         }
 
         TypedQuery<Order> query = em.createQuery(jpql, Order.class)
-                .setMaxResults(1000);
+                                    .setMaxResults(1000);
 
         if (orderSearch.getOrderStatus() != null) {
             query = query.setParameter("status", orderSearch.getOrderStatus());
@@ -123,6 +123,19 @@ public class OrderRepository {
                         "join fetch o.orderItems oi " +
                         "join fetch oi.item i", Order.class
         ).getResultList();
+    }
+
+    public List<Order> findAllWithMemberDelivery(int offset, int limit) {
+
+        // toOne 관계는 페치조인을 적용시키는 것이 최적화에 좋다.
+        // fetchSize를 적용하여 쿼리 횟수를 줄일 수 있다.
+        return em.createQuery(
+                         "select o from Order o " +
+                                 " join fetch o.member m" +
+                                 " join fetch o.delivery d", Order.class
+                 ).setFirstResult(offset)
+                 .setMaxResults(limit)
+                 .getResultList();
     }
 }
 
